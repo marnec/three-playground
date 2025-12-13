@@ -1,6 +1,5 @@
 import type { ReactElement } from "react";
-import SinWave from "./experiments/SinWave/SinWave";
-import Test from "./experiments/Test/Test";
+import SinWave from "./experiments/SinWave/SinWave.mdx";
 
 type Experiment = {
   path: string;
@@ -10,12 +9,12 @@ type Experiment = {
 };
 
 export const experiments = [
-  {
-    path: "test",
-    title: "Test",
-    description: "Just a test",
-    component: <Test />,
-  },
+  // {
+  //   path: "test",
+  //   title: "Test",
+  //   description: "Just a test",
+  //   component: <Test />,
+  // },
   {
     path: "sinwave",
     title: "Sine Wave",

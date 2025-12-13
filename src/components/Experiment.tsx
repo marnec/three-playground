@@ -3,11 +3,12 @@ import { Link } from "react-router";
 
 export interface ExperimentProps extends PropsWithChildren {
   title: string;
+  fullWidth?: boolean;
 }
 
-function Experiment({ title, children }: ExperimentProps) {
+function Experiment({ title, children, fullWidth = false }: ExperimentProps) {
   return (
-    <div className="h-full w-full container mx-auto">
+    <div className={`h-full mx-auto ${fullWidth ? "" : "max-w-4xl"}`}>
       <div className="text-2xl font-bold flex gap-5 py-3">
         <Link to="../">
           <button className="hover:text-blue-600 cursor-pointer pl-0">

@@ -7,6 +7,7 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera as ThreePCam,
 } from "three";
+import { getThemeColorHSL } from "../../utils/theme";
 
 interface SinWaveProps {
   isAnimated: 0 | 1;
@@ -20,7 +21,14 @@ function SinWaveGrid({ isAnimated, autoRotate }: SinWaveProps) {
     <Canvas className="w-full h-full">
       <ambientLight intensity={Math.PI / 2} />
       <PerspectiveCamera makeDefault position={[20, 10, 10]} ref={setMycam} />
-      {mycam && <OrbitControls camera={mycam} autoRotate={autoRotate} />}
+      {mycam && (
+        <OrbitControls
+          camera={mycam}
+          autoRotate={autoRotate}
+          enableZoom={false}
+          enablePan={false}
+        />
+      )}
       <spotLight
         position={[10, 10, 10]}
         angle={0.15}
@@ -49,6 +57,8 @@ function SphericalPointsGrid({ isAnimated }: Omit<SinWaveProps, "autoRotate">) {
     Array<Mesh<BufferGeometry, MeshBasicMaterial> | null>
   >([]);
 
+  const { h } = useMemo(() => getThemeColorHSL("primary"), []);
+
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     meshRefs.current.forEach((m, i) => {
@@ -62,7 +72,7 @@ function SphericalPointsGrid({ isAnimated }: Omit<SinWaveProps, "autoRotate">) {
 
       m.position.y = y;
       m.material.color.setHSL(
-        0.5,
+        h,
         Math.max(0.5, y % 0.7),
         Math.max(0.3, 1 - (y % 1))
       );

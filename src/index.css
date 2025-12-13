@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: oklch(0.75 0.15 195);
+  --color-text: oklch(0.25 0 0);
+  --color-text-muted: oklch(0.45 0 0);
+  --color-accent: oklch(0.7 0.2 330);
+}
+
+:root {
+  --color-primary: oklch(0.75 0.15 195);
+  --color-text: oklch(0.4 0 0);
+  --color-text-muted: oklch(0.45 0 0);
+  --color-accent: oklch(0.7 0.2 330);
+}
+
 body {
   /* @apply font-mono; */
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
@@ -9,6 +23,7 @@ body {
 
 p {
   padding-block: 0.75rem;
+  color: var(--color-text);
 }
 
 hr {
@@ -27,11 +42,4 @@ pre code {
     background-color: transparent;
     padding: 0;
     border-radius: 0;
-}
-
-
-@theme {
-  .container {
-    
-  }
 }
