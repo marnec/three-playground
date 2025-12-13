@@ -1,49 +1,18 @@
-import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
-import {
-  BufferGeometry,
-  Mesh,
-  MeshBasicMaterial,
-  PerspectiveCamera as ThreePCam,
-} from "three";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { BufferGeometry, Mesh, MeshBasicMaterial } from "three";
 import { getThemeColorHSL } from "../../utils/theme";
+import SinWaveScene, { type SinWaveProps } from "../components/SinWaveScene";
 
-interface SinWaveProps {
-  isAnimated: 0 | 1;
-  autoRotate?: boolean;
-}
-
-function SinWaveGrid({ isAnimated, autoRotate }: SinWaveProps) {
-  const [mycam, setMycam] = useState<ThreePCam | null>();
-
+function SinWaveGrid({ autoRotate }: SinWaveProps) {
   return (
-    <Canvas className="w-full h-full">
-      <ambientLight intensity={Math.PI / 2} />
-      <PerspectiveCamera makeDefault position={[20, 10, 10]} ref={setMycam} />
-      {mycam && (
-        <OrbitControls
-          camera={mycam}
-          autoRotate={autoRotate}
-          enableZoom={false}
-          enablePan={false}
-        />
-      )}
-      <spotLight
-        position={[10, 10, 10]}
-        angle={0.15}
-        penumbra={1}
-        decay={0}
-        intensity={Math.PI}
-      />
-      <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-
-      <SphericalPointsGrid isAnimated={isAnimated} />
-    </Canvas>
+    <SinWaveScene autoRotate={autoRotate}>
+      <SphericalPointsGrid />
+    </SinWaveScene>
   );
 }
 
-function SphericalPointsGrid({ isAnimated }: Omit<SinWaveProps, "autoRotate">) {
+function SphericalPointsGrid() {
   const gridSize = 21;
   const positions = useMemo(() => {
     const coords: [number, number, number][] = [];
@@ -68,7 +37,7 @@ function SphericalPointsGrid({ isAnimated }: Omit<SinWaveProps, "autoRotate">) {
 
       const radius = Math.hypot(x, z);
 
-      const y = Math.sin(-t * isAnimated + radius);
+      const y = Math.sin(-t + radius);
 
       m.position.y = y;
       m.material.color.setHSL(

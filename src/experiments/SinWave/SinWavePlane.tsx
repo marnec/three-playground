@@ -1,42 +1,21 @@
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
-import {
-  DoubleSide,
-  Mesh,
-  PlaneGeometry,
-  PerspectiveCamera as ThreePCam,
-  Vector3,
-} from "three";
+import { useFrame, type ThreeElements } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { Mesh, PlaneGeometry, Vector3 } from "three";
 import { getThemeColorHSL, hslToRgb } from "../../utils/theme";
+import SinWaveScene from "../components/SinWaveScene";
 
 function SinWavePlane() {
-  const [mycam, setMycam] = useState<ThreePCam | null>();
-
   return (
-    <Canvas className="w-full h-full">
-      <ambientLight intensity={Math.PI / 2} />
-      <PerspectiveCamera makeDefault position={[20, 10, 10]} ref={setMycam} />
-      {mycam && <OrbitControls camera={mycam} enableZoom={false} enablePan={false} />}
-      <spotLight
-        position={[10, 10, 10]}
-        angle={0.15}
-        penumbra={1}
-        decay={0}
-        intensity={Math.PI}
-      />
-      <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-
+    <SinWaveScene>
       <Plane />
-      {/* <PointGrid /> */}
-    </Canvas>
+    </SinWaveScene>
   );
 }
 
 function Plane() {
   const planeRef = useRef<Mesh<PlaneGeometry>>(null);
 
-  const geometryArgs: [number, number, number, number] = [20, 20, 50, 50];
+  const geometryArgs: ThreeElements["planeGeometry"]["args"] = [20, 20, 50, 50];
 
   const baseHSL = useMemo(() => getThemeColorHSL("primary"), []);
 
@@ -71,7 +50,6 @@ function Plane() {
   const geom = new PlaneGeometry(...geometryArgs);
   const vertexCount = geom.attributes.position.count;
 
-  // Make an initial color buffer
   const colors = new Float32Array(vertexCount * 3).fill(1);
 
   return (
@@ -79,11 +57,7 @@ function Plane() {
       <planeGeometry args={geometryArgs}>
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </planeGeometry>
-      <meshBasicMaterial
-        side={DoubleSide}
-        wireframe={true}
-        vertexColors={true}
-      />
+      <meshBasicMaterial wireframe={true} vertexColors={true} />
     </mesh>
   );
 }

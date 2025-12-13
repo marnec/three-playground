@@ -3,14 +3,12 @@
 @theme {
   --color-primary: oklch(0.75 0.15 195);
   --color-text: oklch(0.25 0 0);
-  --color-text-muted: oklch(0.45 0 0);
   --color-accent: oklch(0.7 0.2 330);
 }
 
 :root {
   --color-primary: oklch(0.75 0.15 195);
-  --color-text: oklch(0.4 0 0);
-  --color-text-muted: oklch(0.45 0 0);
+  --color-text: oklch(0.5 0 0);
   --color-accent: oklch(0.7 0.2 330);
 }
 
@@ -19,6 +17,7 @@ body {
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   padding: 0.5rem;
+  color: var(--color-text);
 }
 
 p {
@@ -27,19 +26,20 @@ p {
 }
 
 hr {
-  margin-block: 1rem;
+  margin-block: 2rem;
+  background-color: var(--color-text);
 }
 
 code {
-    padding-inline: 0.5rem;
-    background-color: gray;
-    color: white;
-    border-radius: 5px;
-    padding-bottom: 0.1rem;
+  padding-inline: 0.2rem;
+  background-color: var(--color-text);
+  color: white;
+  border-radius: 3px;
+  padding-bottom: 0.1rem;
 }
 
 pre code {
-    background-color: transparent;
-    padding: 0;
-    border-radius: 0;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
 }

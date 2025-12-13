@@ -1,6 +1,7 @@
 import SinWaveGrid from "./SinWaveGrid"
 import SinWavePlane from "./SinWavePlane"
 import ExperimentScene from '../../components/ExperimentScene.tsx'
+import SinWaveBox from './SinWaveBox.tsx'
 
 
 <ExperimentScene fullWidth={true}>
@@ -65,3 +66,9 @@ in a `BufferGeometry` because it required to extract the coordinates as
 `BufferAttribute`s. From what I can gather threejs now always stores
 geometries as buffer geometries, that are based on a more efficient data but
 harder to handle data structure.
+
+---
+
+<ExperimentScene> 
+  <SinWaveBox />
+</ExperimentScene>
