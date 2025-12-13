@@ -1,3 +1,37 @@
 @import "tailwindcss";
 
-html,body,#root {height:100%;margin:unset;}
+body {
+  /* @apply font-mono; */
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  padding: 0.5rem;
+}
+
+p {
+  padding-block: 0.75rem;
+}
+
+hr {
+  margin-block: 1rem;
+}
+
+code {
+    padding-inline: 0.5rem;
+    background-color: gray;
+    color: white;
+    border-radius: 5px;
+    padding-bottom: 0.1rem;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+
+@theme {
+  .container {
+    
+  }
+}

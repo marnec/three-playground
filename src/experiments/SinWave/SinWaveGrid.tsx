@@ -1,21 +1,26 @@
-import { CameraControls, PerspectiveCamera } from "@react-three/drei";
-import { Canvas, useFrame, type ThreeElements } from "@react-three/fiber";
+import { PerspectiveCamera, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import {
   BufferGeometry,
   Mesh,
   MeshBasicMaterial,
-  PerspectiveCamera as ThreePCam
+  PerspectiveCamera as ThreePCam,
 } from "three";
 
-function SinWaveGrid() {
+interface SinWaveProps {
+  isAnimated: 0 | 1;
+  autoRotate?: boolean;
+}
+
+function SinWaveGrid({ isAnimated, autoRotate }: SinWaveProps) {
   const [mycam, setMycam] = useState<ThreePCam | null>();
 
   return (
     <Canvas className="w-full h-full">
       <ambientLight intensity={Math.PI / 2} />
       <PerspectiveCamera makeDefault position={[20, 10, 10]} ref={setMycam} />
-      {mycam && <CameraControls camera={mycam} />}
+      {mycam && <OrbitControls camera={mycam} autoRotate={autoRotate} />}
       <spotLight
         position={[10, 10, 10]}
         angle={0.15}
@@ -25,12 +30,12 @@ function SinWaveGrid() {
       />
       <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
 
-      <PointGrid />
+      <SphericalPointsGrid isAnimated={isAnimated} />
     </Canvas>
   );
 }
 
-function PointGrid() {
+function SphericalPointsGrid({ isAnimated }: Omit<SinWaveProps, "autoRotate">) {
   const gridSize = 21;
   const positions = useMemo(() => {
     const coords: [number, number, number][] = [];
@@ -53,7 +58,7 @@ function PointGrid() {
 
       const radius = Math.hypot(x, z);
 
-      const y = Math.sin(-t + radius);
+      const y = Math.sin(-t * isAnimated + radius);
 
       m.position.y = y;
       m.material.color.setHSL(

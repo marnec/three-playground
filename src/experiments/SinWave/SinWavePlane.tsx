@@ -2,13 +2,12 @@ import { CameraControls, PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import {
-    DoubleSide,
-    Mesh,
-    PlaneGeometry,
-    PerspectiveCamera as ThreePCam,
-    Vector3
+  DoubleSide,
+  Mesh,
+  PlaneGeometry,
+  PerspectiveCamera as ThreePCam,
+  Vector3,
 } from "three";
-
 
 function SinWavePlane() {
   const [mycam, setMycam] = useState<ThreePCam | null>();
@@ -36,12 +35,15 @@ function SinWavePlane() {
 function Plane() {
   const planeRef = useRef<Mesh<PlaneGeometry>>(null);
 
+  const geometryArgs: [number, number, number, number] = [20, 20, 50, 50];
+
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
 
     if (!planeRef.current) return;
 
     const position = planeRef.current.geometry.attributes.position;
+    const color = planeRef.current.geometry.attributes.color;
     const vPos = new Vector3();
 
     for (let i = 0; i < position.count; i++) {
@@ -51,19 +53,37 @@ function Plane() {
       );
 
       position.setZ(i, z / 3);
+
+      // Example: color goes from gray → fully saturated red
+      const r = z;
+      const g = 1; // or compute however you want
+      const b = 1;
+
+      color.setXYZ(i, r, g, b);
     }
 
     position.needsUpdate = true;
+    color.needsUpdate = true;
   });
+
+  const geom = new PlaneGeometry(...geometryArgs);
+  const vertexCount = geom.attributes.position.count;
+
+  // Make an initial color buffer
+  const colors = new Float32Array(vertexCount * 3).fill(1);
 
   return (
     <mesh ref={planeRef} position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[20, 20, 100, 100]} />
-      <meshBasicMaterial side={DoubleSide} color={0xffff00} wireframe={true} />
+      <planeGeometry args={geometryArgs}>
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </planeGeometry>
+      <meshBasicMaterial
+        side={DoubleSide}
+        wireframe={true}
+        vertexColors={true}
+      />
     </mesh>
   );
 }
-
-
 
 export default SinWavePlane;
