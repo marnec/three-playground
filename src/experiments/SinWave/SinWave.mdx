@@ -28,8 +28,12 @@ of spherical geometry meshes placed in a grid.
 Then I recentered the grid by translating all mesh coordinates by $-n/2$.
 
 At this point I knew that I needed to set the $y$ coordinate as the
-value of $\sin(\alpha)$ using the distance from the center as my $\alpha$.
-This only works because the grid is centered on the origin.
+value of $\sin(\alpha)$ using the distance from the center $\alpha=d$.
+Where $d$ is the Euclidean distance of a point $(xz)$ from the center.
+
+$$
+d=\sqrt{x^2 + z^2}
+$$
 
 <ExperimentScene>
   <SinWaveGrid isAnimated={1} />
@@ -37,15 +41,15 @@ This only works because the grid is centered on the origin.
 
 Now it's time to animate the motion. The animation is just based on
 elapsed time $t$. The $y$ coordinate is computed at every frame as the
-sine of $t$ plus euclidan distance $d$ from the center $d=\sqrt{x^2 + z^2}$.
+sine of $t$ plus $d$.
 
 $$
 y = \sin(d + t)
 $$
 
-The distance from center provides the initial position and doesn't
-change along time, but $t$ keeps increasing moving every single
-mesh up and down with the values of the sine function.
+For each point $(xz)$, its distance from the center $d_xz$ provides the initial $y$ 
+coordinate and doesn't change along time, while $t$ keeps increasing, moving every
+single mesh up and down with the values of the sine function.
 
 ---
 
@@ -73,12 +77,28 @@ While trying to animate the plane geometry, I noticed in the threejs documentati
 that there was a bunch of other geometries and so I wandered if I could apply the
 wave motion to a face of a 3d geometry.
 
+<ExperimentScene> 
+  <SinWaveBox />
+</ExperimentScene>
+
 I chose arguably the simplest 3d geometry: `BoxGeometry`. I tried to apply the same
 principle used for the `PlaneGeometry` but I found out that they are organized in a 
 different way: the vertices are stored in a single array of flat coordinates as for
 the `PlaneGeometry`, but each face of the cube is assigned to a different `group`, 
 each storing the range of indexes that belong to that `group` (and thus that face).
 
-<ExperimentScene> 
-  <SinWaveBox />
-</ExperimentScene>
+I chose the first group/face that ended up being $x_+$. This means that the coordinate
+that I needed to displace was $x$ and thus we can say $x=sin(t + d)$. But, I soon 
+discovered that that was not enough: the original coordinate this time was not $0$ 
+like the other experiments. This time the original coordinate was half of the width 
+$w$ of the geometry. So for each instant $t_i$ I had compute:
+
+$$
+x_{t_i} = x_{t_0} + sin(t + d)
+$$
+
+With $x_{t_0} = w/2$.
+
+
+Another pain point about this was about the edges of the animated face. If you look at
+the `PlaneGeometry` example, you'll see that the edge 
