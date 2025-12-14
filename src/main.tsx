@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { HashRouter, Route, Routes } from "react-router";
 import Experiment from "./components/Experiment.tsx";
 import Home from "./Home.tsx";
 import "./index.css";
@@ -10,7 +10,7 @@ import { experiments } from "./Routes.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter basename="/three-playground">
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         {experiments.map(({ path, component, title }) => (
@@ -20,6 +20,6 @@ createRoot(document.getElementById("root")!).render(
           />
         ))}
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   </StrictMode>
 );

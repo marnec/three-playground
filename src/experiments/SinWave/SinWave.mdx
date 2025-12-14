@@ -69,6 +69,16 @@ harder to handle data structure.
 
 ---
 
+While trying to animate the plane geometry, I noticed in the threejs documentation
+that there was a bunch of other geometries and so I wandered if I could apply the
+wave motion to a face of a 3d geometry.
+
+I chose arguably the simplest 3d geometry: `BoxGeometry`. I tried to apply the same
+principle used for the `PlaneGeometry` but I found out that they are organized in a 
+different way: the vertices are stored in a single array of flat coordinates as for
+the `PlaneGeometry`, but each face of the cube is assigned to a different `group`, 
+each storing the range of indexes that belong to that `group` (and thus that face).
+
 <ExperimentScene> 
   <SinWaveBox />
 </ExperimentScene>
