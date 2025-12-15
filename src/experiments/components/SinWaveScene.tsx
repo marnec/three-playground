@@ -2,6 +2,7 @@ import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useState, type PropsWithChildren } from "react";
 import { PerspectiveCamera as ThreePCam } from "three";
+import { usePageVisibility } from "../../hooks/usePageVisibility";
 
 export interface SinWaveProps extends PropsWithChildren {
   autoRotate?: boolean;
@@ -9,9 +10,10 @@ export interface SinWaveProps extends PropsWithChildren {
 
 function SinWaveScene({ autoRotate, children }: SinWaveProps) {
   const [camera, setCamera] = useState<ThreePCam | null>();
+  const isVisible = usePageVisibility();
 
   return (
-    <Canvas className="w-full h-full">
+    <Canvas className="w-full h-full" frameloop={isVisible ? "always" : "never"}>
       <ambientLight intensity={Math.PI / 2} />
       <PerspectiveCamera makeDefault position={[20, 10, 10]} ref={setCamera} />
       {camera && (

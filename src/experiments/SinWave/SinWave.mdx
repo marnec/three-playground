@@ -74,7 +74,7 @@ harder to handle data structure.
 ---
 
 While trying to animate the plane geometry, I noticed in the threejs documentation
-that there was a bunch of other geometries and so I wandered if I could apply the
+that there was a bunch of other geometries and so I wondered if I could apply the
 wave motion to a face of a 3d geometry.
 
 <ExperimentScene> 
@@ -88,9 +88,10 @@ the `PlaneGeometry`, but each face of the cube is assigned to a different `group
 each storing the range of indexes that belong to that `group` (and thus that face).
 
 I chose the first group/face that ended up being $x_+$. This means that the coordinate
-that I needed to displace was $x$ and thus we can say $x=sin(t + d)$. But, I soon 
-discovered that that was not enough: the original coordinate this time was not $0$ 
-like the other experiments. This time the original coordinate was half of the width 
+that I needed to displace was $x$ and thus we can say $x=sin(t + d)$. 
+
+I soon discovered that that was not enough: the original coordinate this time was not $0$ 
+like the other experiments. This time the origin $x_{t_0}$ was half of the width 
 $w$ of the geometry. So for each instant $t_i$ I had compute:
 
 $$
@@ -101,4 +102,42 @@ With $x_{t_0} = w/2$.
 
 
 Another pain point about this was about the edges of the animated face. If you look at
-the `PlaneGeometry` example, you'll see that the edge 
+the `PlaneGeometry` example, you'll see that the edges float around. I thought that the
+vertices of the adjacent faces would automatically connect to the vertices of the animated
+face. Well I was wrong. 
+
+Apparently, each face is completely independent and animating just
+one face created floating detached vertices at the edges. I could solve this problem by
+either animating the edge vertices of the adjacent faces or by fixing in-place the edge
+vertices of the animated face. I went with the second option.
+
+To fix them in place I created a smooth dampening that reduces the ondulation
+as a function of the distance from center, with 0 motion at the edges. The dampen $m$ is
+calculated as:
+
+$$
+m = 1 - \frac{d}{\max{(d)}}
+$$
+
+It's a bit cumbersome to calculate $\max{(d)}$, because it depends on the angle of the
+vector $\begin{pmatrix}y \\ z\end{pmatrix}$. 
+
+$$
+\max{(d)} = \min{(\max{(dy)},\max{(dz)})}
+$$
+
+Where $dy=\frac{x_{t_{0}}}{|\cos{(\alpha)}|}$
+
+And $dz=\frac{x_{t_{0}}}{|\sin{(\alpha)}|}$
+
+And $\alpha=\tan{(z, y)}$ calculated with the `atan2` implementation, which returns angle values in $(0, 2\pi]$.
+
+---
+
+There's a thing that I increasingly realized by working on this experiments. This is for sure 
+a type of work that can be done in shaders and thus offloaded to the cpu. This is also the
+reason why I didn't focus on optimization here as I'm planning to reproduce this work in shaders.
+
+But now it's still too early for that. Shaders are hard and there are many things I want to try
+out that don't require them. I'll get a better feeling of the tool first and then I'll probably wander
+off in the land of shaders.

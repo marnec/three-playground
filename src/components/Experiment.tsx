@@ -11,7 +11,7 @@ function Experiment({ title, children, fullWidth = false }: ExperimentProps) {
     <div className={`h-full mx-auto ${fullWidth ? "" : "max-w-4xl"}`}>
       <div className="text-2xl font-bold flex gap-5 py-3">
         <Link to="../">
-          <button className="hover:text-blue-600 cursor-pointer pl-0">
+          <button className="hover:text-primary cursor-pointer pl-0">
             <span>{decodeURIComponent("%3C")}-</span>
           </button>
         </Link>

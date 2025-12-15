@@ -1,10 +1,13 @@
 import { Canvas } from "@react-three/fiber";
 import Box from "./Box";
 import { Vector3 } from "three";
+import { usePageVisibility } from "../../hooks/usePageVisibility";
 
 function Test() {
+  const isVisible = usePageVisibility();
+
   return (
-    <Canvas className="w-full h-full">
+    <Canvas className="w-full h-full" frameloop={isVisible ? "always" : "never"}>
       <ambientLight intensity={Math.PI / 2} />
       <spotLight
         position={[10, 10, 10]}
