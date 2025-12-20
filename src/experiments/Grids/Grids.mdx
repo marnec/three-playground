@@ -183,11 +183,7 @@ and we take a bigger step; when $\Delta{t}$ is small (high FPS), we take many sm
 naive $k \cdot \delta$ approach, this correctly accounts for the compounding nature of the interpolation
 and produces the same result regardless of frame rate.
 
-In my code I wrote the lerp factor as:
-
-```ts
-const lerpFactor = 1 - Math.pow(0.0001, delta);
-```
+In my code I wrote the lerp factor as $1 - 0.0001^\delta$
 
 This looks different from the $1 - e^{-k \Delta t}$ we derived, but they're actually equivalent. Using the
 identity $x = e^{\ln(x)}$, we can rewrite the base form:
