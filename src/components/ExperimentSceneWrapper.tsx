@@ -12,9 +12,6 @@ interface ExperimentSceneProps extends PropsWithChildren {
 function ExperimentSceneWrapper({
   children,
   fullWidth = false,
-  pan = false,
-  zoom = false,
-  rotate = false,
   className = "",
   ref,
 }: ExperimentSceneProps) {

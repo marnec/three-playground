@@ -1,6 +1,6 @@
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React, { useState, type PropsWithChildren } from "react";
+import { useState, type PropsWithChildren } from "react";
 import { PerspectiveCamera as ThreePCam } from "three";
 import { usePageVisibility } from "../../hooks/usePageVisibility";
 

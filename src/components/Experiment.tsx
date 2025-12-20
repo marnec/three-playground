@@ -17,7 +17,7 @@ function Experiment({ title, children, fullWidth = false }: ExperimentProps) {
         </Link>
         <div>{title}</div>
       </div>
-      <div className="h-full w-full">{children}</div>
+      <div className="h-full w-full mdx-content">{children}</div>
     </div>
   );
 }

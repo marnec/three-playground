@@ -1,13 +1,12 @@
-import { Grid, type GridMaterialType, Sphere, Text } from "@react-three/drei";
+import { Grid, type GridMaterialType, Text } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import {
   Line,
   Mesh,
-  MeshBasicMaterial,
   Plane,
   SphereGeometry,
-  Vector3,
+  Vector3
 } from "three";
 import { getThemeColor } from "../../utils/theme";
 import GridScene from "../components/GridScene";

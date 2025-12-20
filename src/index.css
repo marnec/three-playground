@@ -51,7 +51,7 @@ blockquote {
   font-style: italic;
 }
 
-a {
+.mdx-content a {
   color: var(--color-primary);
   text-decoration: underline;
   font-weight: 900;
