@@ -53,21 +53,127 @@ the next one.
 
 ---
 
-An improvement over this model is to smooth the motion of the box between jumps. To achieve this
-we can use another widely used tool in graphics: linear interpolation or `lerp`.
+An improvement over this snappy behavior is to smooth the motion between grid positions. We can
+achieve this using linear interpolation, commonly called `lerp`.
 
-Mathematically linear interpolation $f$ is a single step operation and can be written as
+Given two points $A$ and $B$, linear interpolation computes a point $C$ along the segment $\overline{AB}$:
 
 $$
-f(A, B, \alpha) = A + (B-A) \cdot \alpha
+\begin{aligned}
+\text{lerp}(A, B, \alpha) & = A + (B - A) \cdot \alpha \\
+& = (1 - \alpha) \cdot A + \alpha \cdot B
+\end{aligned}
 $$
 
-Where $A$ and $B$ are two vectors, but I find it much more intuitive to think of them as points. 
-The result of $f(A, B, \alpha)$ is a new point/vector $C$ that sits somewhere along the single line 
-that passes through $A$ and $B$. The factor $\alpha$ is a value in the close interval $[0,1]$ that
-tells us how close $C$ is to either $A$ or $B$; when $\alpha \sim 0$, then $C \sim A$, while
-when $\alpha \sim 1$, then  $C \sim B$.
+The parameter $\alpha \in [0, 1]$ controls how far $C$ lies along the segment: when $\alpha = 0$,
+we get $C = A$; when $\alpha = 1$, we get $C = B$.
+
+When you apply lerp repeatedly at each frame let's say with $\alpha=0.15$, you are doing something like:
+
+> Move 15% of the remaining distance to the target each frame
+
+This creates exponential decay toward the target and gives a springy feels to the motion. However it's 
+important to notice that this approach is not a physics simulation. It's more a low-pass filter than 
+anything else: we are **filtering the position signal**, taking the current value $A$ and blendng 
+it a *little* ($\alpha$) towards the target value $B$.
 
 <ExperimentSceneWrapper>
     <LerpGrid />
 </ExperimentSceneWrapper>
+
+---
+
+If we apply linear interpolation naively at every frame, we are doing frame-dependent interpolation, which
+is usually not what you want. The simulation should run independently from the ability of the renderer
+to draw at screen. If we use a fixed $\alpha$, the object will move faster on a machine running at 120 FPS
+than on one running at 30 FPS, since more lerp steps are executed per second.
+
+The most common solution to this problem is to add a factor $\delta$ (or $dt$), which is effectively the
+seconds passed between the previous and current frame.
+
+$$
+\text{lerp}(a, b, \alpha) = a + (b - a) \cdot \alpha \cdot \delta
+$$
+
+And this is also where I would stop if it wasn't for [gingerBill video at BSC2025](https://www.youtube.com/watch?v=YNtoDGS4uak).
+In that video I discovered that the common solution helps but it's still slightly frame-rate dependent.
+
+It helps because when the frame rate drops, $\delta$ increases, so we take a larger step to compensate.
+However, this solution is still slightly frame rate dependent because lerp is inherently non-linear when
+applied repeatedly: the step size depends on the current distance to the target, which changes after each
+frame. A more frame independent solution is instead:
+
+$$
+\text{lerp}(a, b, \alpha) = a + (b - a) \cdot (1 - e^{-\alpha \delta})
+$$
+
+To explain where the term $1 - e^{-\alpha \delta}$ comes from, we need to look more closely
+at our attempt at a frame independent lerp $a + (b - a) \cdot \alpha \cdot \delta$. What we are doing
+here is saying that the source point $a$ should move towards the target point $b$ by a certain
+amount $\Delta{a}$. This amount is the distance from the current value $a(t)$ to $b$, scaled by a factor
+$\alpha$ (how fast we want to converge) and scaled again by the time that passed $\Delta{t}$:
+
+$$
+\Delta{a}  = (b - a(t)) \cdot \alpha \cdot \Delta{t}
+$$
+
+We can rearrange this to express the rate of change. By dividing both sides by $\Delta{t}$ and taking the
+limit as the time interval becomes infinitesimally small, we get a differential equation:
+
+$$
+\begin{aligned}
+& \frac{\Delta{a}}{\Delta{t}}  = (b - a(t)) \cdot \alpha  \\
+& \frac{da}{dt}  = (b - a(t)) \cdot \alpha  \\
+\end{aligned}
+$$
+
+This is a first order linear ordinary (rather than partial) differential equation. It says that the rate
+of change of $a$ is proportional to how far $a$ is from the target $b$. If you integrate this
+differential equation (or you can plug it into [Wolfram Alpha](https://www.wolframalpha.com/input?i=da%2Fdt+%3D+%28b-a%28t%29%29+*+k))
+you'll get:
+
+
+$$
+a(t) = b + c_1 \cdot e^{-\alpha t}
+$$
+
+Where $c_1$ is a constant determined by the initial conditions. If we know that $a(0) = a_0$ (our starting
+position), we can solve for $c_1$: plugging $t = 0$ into the equation gives $a_0 = b + c_1 \cdot e^0 = b + c_1$,
+so $c_1 = a_0 - b$.
+
+This solution is fine in continuous time, but when we run a simulation we can only compute at discrete time
+intervals (each frame). We need to gradually increment the value of $a$ towards $b$ at each iteration. Let's
+substitute our expression for $c_1$ back into the solution and rearrange it into a form that looks more like
+a lerp:
+
+$$
+\begin{aligned}
+a(t) & = b + (a(0) - b) \cdot e^{-\alpha t} \\
+a(t) & = a(0) \cdot e^{-\alpha t} + b \cdot (1 - e^{- \alpha t}) \\
+a(t) & = a(0) + (b - a(0)) \cdot (1 - e^{- \alpha t})
+\end{aligned}
+$$
+
+The last line is exactly the lerp formula $\text{lerp}(a(0), b, 1 - e^{-\alpha t})$. So we've circled back to
+linear interpolation, but now the interpolation parameter is $(1 - e^{-\alpha t})$ instead of a constant $\alpha$.
+
+This gives us the position at any time $t$ given the initial position $a(0)$. But in a threejs frame (or in a game loop), we don't
+have access to the original starting position from time zero — we only know the current position and want to
+compute where we'll be after one frame. To get an incremental update formula, we can think of each frame as
+starting fresh: the "initial" position is wherever we are now, and $t$ becomes the time step $\Delta{t}$.
+
+$$
+a_{\text{next}} = a_{\text{current}} + (b - a_{\text{current}}) \cdot (1 - e^{-\alpha \Delta{t}})
+$$
+
+Or equivalently, the change in position each frame is:
+
+$$
+\Delta{a} = (b - a) \cdot (1 - e^{-\alpha \Delta{t}})
+$$
+
+This is our frame-rate independent lerp. The exponential term $(1 - e^{-\alpha \Delta{t}})$
+automatically adjusts for variable frame times: when $\Delta{t}$ is large (low FPS), the exponential term grows
+and we take a bigger step; when $\Delta{t}$ is small (high FPS), we take many smaller steps. But unlike the
+naive $\alpha \cdot \delta$ approach, this correctly accounts for the compounding nature of the interpolation
+and produces the same result regardless of frame rate.

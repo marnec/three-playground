@@ -42,3 +42,17 @@ pre code {
   padding: 0;
   border-radius: 0;
 }
+
+blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 1rem;
+  margin-block: 1rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  font-weight: 900;
+}

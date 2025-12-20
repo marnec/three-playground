@@ -1,6 +1,6 @@
 Things I'd like to experiment with:
  - [x] waves
- - [ ]a torch in the dark
+ - [ ] a torch in the dark
  - [x] grids
  = [ ] plopping
  = [ ] roads
@@ -8,6 +8,6 @@ Things I'd like to experiment with:
  = [ ] a-star
  = [ ] flock behaviour & sprites
  = [ ] marching cubes
- = [ ] 3dmodel fix pose w/ head follow cursor
+ = [ ] 3dmodel fix pose w/ head follow cursor (skeleton and inverse kinematics)
  = [ ] z brush implementation
  = [ ] shaders? vertex displacement on gpu
