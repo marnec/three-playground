@@ -12,7 +12,10 @@ export default defineConfig({
   plugins: [
     { enforce: "pre", ...mdx({
       remarkPlugins: [remarkMath],
-      rehypePlugins: [rehypeKatex, rehypeHighlight],
+      rehypePlugins: [
+        [rehypeKatex, { macros: { "\\nint": "\\lfloor #1 \\rceil" } }],
+        rehypeHighlight
+      ],
     })},
     react({ include: /\.(jsx|js|mdx|md|tsx|ts)$/ }),
     tailwindcss(),

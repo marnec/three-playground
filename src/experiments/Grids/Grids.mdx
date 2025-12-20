@@ -1,0 +1,73 @@
+import SnappyGrid from './SnappyGrid.tsx';
+import LerpGrid from './LerpGrid.tsx';
+import Raycasting from './Raycasting.tsx';
+import ExperimentSceneWrapper from '../../components/ExperimentSceneWrapper.tsx';
+
+
+<ExperimentSceneWrapper>
+    <LerpGrid />
+</ExperimentSceneWrapper>
+
+Grids are useful, especially if you need to draw at screen something that users will have to 
+manipulate with a certain degree of precision. It can act as a visual cue or it can be used 
+to effetcively constraint the movement of objects on a surface.
+
+Three js has a useful `GridHelper` that lets you draw a grid on the plane $\mathcal{P}_{xz}$. 
+[Drei](https://drei.docs.pmnd.rs/) expands on that with some useful features like the ability
+to draw an inifinite grid or make the grid follow the camera.
+
+Let's say that we want a cube to follow our cursor position, but only move at grid intersections.
+To achieve that we need to: (a) Track the position of the cursor on the plane; (b) Calculate the
+closest grid intersection point $p$; (c) Set the position of the cube to $p$.
+
+Tracking the position of the cursor on the plane is achieved through a tool commonly used in 
+3D grahics, a `Raycaster`. A raycaster is an object that casts a "ray" from point `A` to `B`.
+In our case, we want to cast a ray from the `Camera` (our point of view) to the grid. 
+
+Once that is done, we can retrieve the position in world coordinates where the ray intersected
+with the plane.
+
+<ExperimentSceneWrapper className='mt-5'>
+    <Raycasting />
+</ExperimentSceneWrapper>
+
+We can use these coordiantes to update the position of an object. Restraining the object position
+to grid intersections becomes trival, at every frame we need to compute:
+
+$$
+\begin{aligned}
+x = & \nint{x / s} \cdot s \\
+z = & \nint{z / s} \cdot s \\
+\end{aligned}
+$$
+
+Where $s$ is the size of the grid section or in other words the *step* of the grid.
+
+This means that, at every frame, we are rounding the position to the nearest grid intersection.
+This creates a snappy behaivour, where the moved object (a box in this case) jumps from a position to
+the next one.
+
+<ExperimentSceneWrapper className='mt-5'>
+    <SnappyGrid />
+</ExperimentSceneWrapper>
+
+---
+
+An improvement over this model is to smooth the motion of the box between jumps. To achieve this
+we can use another widely used tool in graphics: linear interpolation or `lerp`.
+
+Mathematically linear interpolation $f$ is a single step operation and can be written as
+
+$$
+f(A, B, \alpha) = A + (B-A) \cdot \alpha
+$$
+
+Where $A$ and $B$ are two vectors, but I find it much more intuitive to think of them as points. 
+The result of $f(A, B, \alpha)$ is a new point/vector $C$ that sits somewhere along the single line 
+that passes through $A$ and $B$. The factor $\alpha$ is a value in the close interval $[0,1]$ that
+tells us how close $C$ is to either $A$ or $B$; when $\alpha \sim 0$, then $C \sim A$, while
+when $\alpha \sim 1$, then  $C \sim B$.
+
+<ExperimentSceneWrapper>
+    <LerpGrid />
+</ExperimentSceneWrapper>

@@ -1,12 +1,12 @@
 import SinWaveGrid from "./SinWaveGrid"
 import SinWavePlane from "./SinWavePlane"
-import ExperimentScene from '../../components/ExperimentScene.tsx'
+import ExperimentSceneWrapper from '../../components/ExperimentSceneWrapper.tsx'
 import SinWaveBox from './SinWaveBox.tsx'
 
 
-<ExperimentScene fullWidth={true}>
+<ExperimentSceneWrapper fullWidth={true}>
   <SinWavePlane />
-</ExperimentScene>
+</ExperimentSceneWrapper>
 
 I was always fascinated by wave-like motion. I find it calming and
 hypnotic.
@@ -35,9 +35,9 @@ $$
 d=\sqrt{x^2 + z^2}
 $$
 
-<ExperimentScene>
+<ExperimentSceneWrapper>
   <SinWaveGrid isAnimated={1} />
-</ExperimentScene>
+</ExperimentSceneWrapper>
 
 Now it's time to animate the motion. The animation is just based on
 elapsed time $t$. The $y$ coordinate is computed at every frame as the
@@ -61,9 +61,9 @@ on the $[xy]$ so I rotated it by $\pi/2$ radians along the $x$ axis.
 Now I needed to do something similar to what I did for the vertical position
 of spheres to the vertical position of vertex.
 
-<ExperimentScene>
+<ExperimentSceneWrapper>
   <SinWavePlane />
-</ExperimentScene>
+</ExperimentSceneWrapper>
 
 It was a bit of a pain to understand how to modify the position of vertices
 in a `BufferGeometry` because it required to extract the coordinates as
@@ -77,9 +77,9 @@ While trying to animate the plane geometry, I noticed in the threejs documentati
 that there was a bunch of other geometries and so I wondered if I could apply the
 wave motion to a face of a 3d geometry.
 
-<ExperimentScene> 
+<ExperimentSceneWrapper> 
   <SinWaveBox />
-</ExperimentScene>
+</ExperimentSceneWrapper>
 
 I chose arguably the simplest 3d geometry: `BoxGeometry`. I tried to apply the same
 principle used for the `PlaneGeometry` but I found out that they are organized in a 
