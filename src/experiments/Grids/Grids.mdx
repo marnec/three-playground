@@ -183,7 +183,7 @@ and we take a bigger step; when $\Delta{t}$ is small (high FPS), we take many sm
 naive $k \cdot \delta$ approach, this correctly accounts for the compounding nature of the interpolation
 and produces the same result regardless of frame rate.
 
-In the code above, you might have noticed the lerp factor is written as:
+In my code I wrote the lerp factor as:
 
 ```ts
 const lerpFactor = 1 - Math.pow(0.0001, delta);
@@ -198,11 +198,12 @@ $$
 
 So `Math.pow(0.0001, delta)` is the same as $e^{-9.21 \cdot \delta}$, meaning our code uses $k \approx 9.21$.
 
-The two forms offer different ways to think about the speed parameter:
+The two forms offer different ways to think about the speed parameter: 
 
-- **Decay rate form** ($1 - e^{-k \Delta t}$): You specify how fast you converge. Higher $k$ means faster movement.
-- **Remaining fraction form** ($1 - \text{base}^{\Delta t}$): You specify what fraction of the distance remains after one second.
+In the *decay rate* form ($1 - e^{-k \Delta t}$) 
+you specify how fast you converge towards $b$ by tweaking $k$, higher $k$ means faster movement.
 
-The second form is often more intuitive for tweaking. With a base of `0.0001`, after one second only 0.01% of the
-original distance remains — you're essentially there. If you wanted slower, smoother movement, you'd use a larger
+In the *remaining fraction* form ($1 - \text{base}^{\Delta t}$) you specify what fraction of the distance remains after one second.
+It's more intuitive for tweaking. With a base of `0.0001`, after one second only 0.01% of the
+original distance remains, you're essentially there. If you wanted slower, smoother movement, you'd use a larger
 base like `0.1`, meaning 10% of the distance remains after one second.

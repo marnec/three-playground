@@ -5,7 +5,7 @@ import Experiment from "./components/Experiment.tsx";
 import Home from "./Home.tsx";
 import "./index.css";
 import "katex/dist/katex.min.css";
-import "highlight.js/styles/github.min.css";
+import "highlight.js/styles/tokyo-night-light.css";
 import { experiments } from "./Routes.tsx";
 
 createRoot(document.getElementById("root")!).render(

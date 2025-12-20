@@ -12,132 +12,170 @@ I was always fascinated by wave-like motion. I find it calming and
 hypnotic.
 
 I knew that to achieve a wave-like effect I would have to use a wave
-function somewhere, the first that comes to mind is the sine function
-$\sin(\alpha)$. Since $\alpha$ is an angle, its value is expected to be
-$0 < \alpha < 2\pi$, but I don't really care about it being an angle,
-I only care about the fact that this function returns values in the form
-of an infinitely cyclical wave for increasing values of $\alpha$.
+function somewhere, and the first that comes to mind is the sine function
+$\sin(\alpha)$. Mathematically, $\alpha$ represents an angle and is expected to be
+in the range $0 < \alpha < 2\pi$. But here's the thing: I don't actually need it
+to represent an angle. What matters is the key property of the sine function: it
+produces a smooth, continuously oscillating output that cycles between -1 and 1
+as its input increases.
 
-This means that I can use this values to set the height of some visual
-elements so that they resemble a wave pattern.
+This means I can use these oscillating values to control the height of visual
+elements, making them rise and fall in a wave pattern.
 
-The first strategy that came to my mind was to just draw an $n$ by $n$ grid of
-simple objects, in this case they are spherical meshes. I didn't bother
-with instantiation for performance optimization, they are just a bunch
-of spherical geometry meshes placed in a grid.
-Then I recentered the grid by translating all mesh coordinates by $-n/2$.
+The first strategy that came to my mind was to draw an $n$ by $n$ grid of
+simple objects, in this case, spherical meshes. I didn't bother with
+instanced rendering for performance optimization; they're just individual
+sphere geometry meshes placed in a grid pattern.
 
-At this point I knew that I needed to set the $y$ coordinate as the
-value of $\sin(\alpha)$ using the distance from the center $\alpha=d$.
-Where $d$ is the Euclidean distance of a point $(xz)$ from the center.
+By default, a grid starting at $(0, 0)$ would have all spheres in one quadrant.
+To center the wave effect, I translated all mesh coordinates by $-n/2$, placing
+the origin at the middle of the grid.
+
+To create a circular wave emanating from the center,
+I needed each sphere's height to depend on its distance from the origin. So I set
+the $y$ coordinate as the value of $\sin(d)$, where $d$ is the Euclidean distance
+of a point $(x, z)$ from the center:
 
 $$
 d=\sqrt{x^2 + z^2}
 $$
 
+Spheres close to the center have a small $d$, while those at the edges have a
+large $d$. Since $\sin$ oscillates as its input grows, this naturally creates
+concentric rings of varying height in a wave pattern.
+
 <ExperimentSceneWrapper>
   <SinWaveGrid isAnimated={1} />
 </ExperimentSceneWrapper>
 
-Now it's time to animate the motion. The animation is just based on
-elapsed time $t$. The $y$ coordinate is computed at every frame as the
-sine of $t$ plus $d$.
+Now it's time to animate the motion. The idea is to add elapsed time $t$ to
+our distance value. On every frame, the $y$ coordinate is recomputed as:
 
 $$
 y = \sin(d + t)
 $$
 
-For each point $(xz)$, its distance from the center $d_xz$ provides the initial $y$ 
-coordinate and doesn't change along time, while $t$ keeps increasing, moving every
-single mesh up and down with the values of the sine function.
+Each sphere has a fixed distance $d$ from the center that
+never changes. But $t$ keeps increasing as time passes. Adding them together
+means each sphere's sine input continuously grows, causing it to oscillate up
+and down. And because different spheres have different $d$ values, they're all
+at different phases of the oscillation, which is exactly what makes the wave
+appear to ripple outward from the center.
 
 ---
 
-The actual result I wanted to get to was to animate a surface in a
-similar way. I created a mesh and given it a `PlaneGeometry` with
-50 segments on both axes. By default, `PlaneGeometry`s are created
-on the $[xy]$ so I rotated it by $\pi/2$ radians along the $x$ axis.
+The actual result I wanted to achieve was to animate a continuous surface in a
+similar way. I created a mesh with a `PlaneGeometry` using 50 segments on both
+axes, which allows for a smoother wave
+deformation. By default, `PlaneGeometry` is created on the $xy$ plane, so I
+rotated it by $\pi/2$ radians along the $x$ axis to lay it flat horizontally.
 
 Now I needed to do something similar to what I did for the vertical position
-of spheres to the vertical position of vertex.
+of spheres: for each vertex, compute its distance from the center and use that to determine its height
+via the sine function.
 
 <ExperimentSceneWrapper>
   <SinWavePlane />
 </ExperimentSceneWrapper>
 
-It was a bit of a pain to understand how to modify the position of vertices
-in a `BufferGeometry` because it required to extract the coordinates as
-`BufferAttribute`s. From what I can gather threejs now always stores
-geometries as buffer geometries, that are based on a more efficient data but
-harder to handle data structure.
+The tricky part was figuring out how to actually modify vertex positions.
+In Three.js, geometries are stored as `BufferGeometry`, which uses flat typed
+arrays for performance. Vertex positions live in a `BufferAttribute` called
+`position`, stored as a contiguous array where every three consecutive values
+represent one vertex's $(x, y, z)$ coordinates. To animate the wave, I loop
+through this array, calculate the distance for each vertex, and update its
+height accordingly. Another tricky part is that you need to set
+`geometry.attributes.position.needsUpdate = true` to tell Three.js to
+re-upload the data to the GPU, otherwise you won't see your changes (not always at least).
 
 ---
 
-While trying to animate the plane geometry, I noticed in the threejs documentation
-that there was a bunch of other geometries and so I wondered if I could apply the
-wave motion to a face of a 3d geometry.
+While working on the plane, I noticed in the Three.js documentation that there
+were many other built-in geometries. This made me wonder: could I apply the same
+wave motion to just one face of a 3D shape?
 
-<ExperimentSceneWrapper> 
+<ExperimentSceneWrapper>
   <SinWaveBox />
 </ExperimentSceneWrapper>
 
-I chose arguably the simplest 3d geometry: `BoxGeometry`. I tried to apply the same
-principle used for the `PlaneGeometry` but I found out that they are organized in a 
-different way: the vertices are stored in a single array of flat coordinates as for
-the `PlaneGeometry`, but each face of the cube is assigned to a different `group`, 
-each storing the range of indexes that belong to that `group` (and thus that face).
+I chose arguably the simplest 3D geometry: `BoxGeometry`. I tried to apply the
+same principle used for the `PlaneGeometry`, but discovered that box geometries
+are organized differently. While vertices are still stored in a single flat
+array of coordinates, each face of the cube is assigned to a different `group`.
+Each group stores the range of vertex indices that belong to it, allowing you
+to identify and manipulate specific faces.
 
-I chose the first group/face that ended up being $x_+$. This means that the coordinate
-that I needed to displace was $x$ and thus we can say $x=sin(t + d)$. 
+I targeted the first group, which turned out to be the $x_+$ face (the face
+pointing in the positive x direction). Since this face is perpendicular to the
+x-axis, the coordinate I needed to displace was $x$, giving us $x = \sin(t + d)$.
 
-I soon discovered that that was not enough: the original coordinate this time was not $0$ 
-like the other experiments. This time the origin $x_{t_0}$ was half of the width 
-$w$ of the geometry. So for each instant $t_i$ I had compute:
-
-$$
-x_{t_i} = x_{t_0} + sin(t + d)
-$$
-
-With $x_{t_0} = w/2$.
-
-
-Another pain point about this was about the edges of the animated face. If you look at
-the `PlaneGeometry` example, you'll see that the edges float around. I thought that the
-vertices of the adjacent faces would automatically connect to the vertices of the animated
-face. Well I was wrong. 
-
-Apparently, each face is completely independent and animating just
-one face created floating detached vertices at the edges. I could solve this problem by
-either animating the edge vertices of the adjacent faces or by fixing in-place the edge
-vertices of the animated face. I went with the second option.
-
-To fix them in place I created a smooth dampening that reduces the ondulation
-as a function of the distance from center, with 0 motion at the edges. The dampen $m$ is
-calculated as:
+But I soon discovered that wasn't quite right. In the previous experiments, the
+vertices started at $y = 0$, so the sine displacement directly became the new
+position. This time, the face isn't at the origin, it sits at $x = w/2$, where
+$w$ is the width of the box. So the displacement needs to be added to the
+original position rather than replacing it:
 
 $$
-m = 1 - \frac{d}{\max{(d)}}
+x_{t_i} = x_{t_0} + \sin(t + d)
 $$
 
-It's a bit cumbersome to calculate $\max{(d)}$, because it depends on the angle of the
-vector $\begin{pmatrix}y \\ z\end{pmatrix}$. 
+Where $x_{t_0} = w/2$ is the resting position of the face.
+
+
+Another challenge was dealing with the edges of the animated face. If you look
+at the `PlaneGeometry` example, you'll notice the edges float freely in space.
+I initially assumed that vertices shared between adjacent faces would stay
+connected automatically. I was wrong.
+
+In a `BoxGeometry`, each face has its own independent set of vertices. They
+don't share vertices with neighboring faces, even at the edges. So when I
+animated just one face, gaps appeared where the moving vertices pulled away
+from the stationary adjacent faces.
+
+I had two options: animate the edge vertices of neighboring faces to match,
+or constrain the animated face's edges to stay in place. I went with the
+second approach.
+
+To achieve this, I created a smooth dampening factor that reduces the wave
+amplitude as a function of distance from the center, reaching zero at the
+edges. This way, edge vertices stay fixed while the center of the face
+undulates freely. The dampening multiplier $m$ is calculated as:
 
 $$
-\max{(d)} = \min{(\max{(dy)},\max{(dz)})}
+m = 1 - \frac{d}{d_{max}}
 $$
 
-Where $dy=\frac{x_{t_{0}}}{|\cos{(\alpha)}|}$
+At the center ($d = 0$), the multiplier is $m = 1$, meaning full wave amplitude.
+At the edges ($d = d_{max}$), the multiplier becomes $m = 0$, meaning no movement.
 
-And $dz=\frac{x_{t_{0}}}{|\sin{(\alpha)}|}$
+The painful part is calculating $d_{max}$, the maximum distance from the center
+to the edge. Since the face is rectangular rather than circular, this maximum
+distance depends on the direction you're measuring in. A vertex directly above
+the center reaches the edge at a different distance than one at a 45° angle
+toward a corner.
 
-And $\alpha=\tan{(z, y)}$ calculated with the `atan2` implementation, which returns angle values in $(0, 2\pi]$.
+To handle this, I compute the distance to the edge along both the $y$ and $z$
+axes based on the vertex's angle $\alpha$ from the center:
+
+$$
+d_{max} = \min(d_y, d_z)
+$$
+
+Where $d_y = \frac{h/2}{|\cos(\alpha)|}$ and $d_z = \frac{w/2}{|\sin(\alpha)|}$,
+with $h$ and $w$ being the height and width of the face.
+
+The angle $\alpha = \text{atan2}(z, y)$ gives us the direction from the center
+to each vertex. By taking the minimum of the two distances, we get the actual
+distance to whichever edge the vertex would hit first.
 
 ---
 
-There's a thing that I increasingly realized by working on this experiments. This is for sure 
-a type of work that can be done in shaders and thus offloaded to the cpu. This is also the
-reason why I didn't focus on optimization here as I'm planning to reproduce this work in shaders.
+One thing I increasingly realized while working on these experiments: this type
+of per-vertex computation is exactly what shaders are designed for. Instead of
+looping through vertices on the CPU every frame, a vertex shader could perform
+these calculations in parallel on the GPU, which would be far more efficient.
 
-But now it's still too early for that. Shaders are hard and there are many things I want to try
-out that don't require them. I'll get a better feeling of the tool first and then I'll probably wander
-off in the land of shaders.
+But shaders have a steep learning
+curve, and there's still plenty I want to explore with the JavaScript API.
+I'll build up my intuition for the tool first, and eventually go into
+shader territory.
