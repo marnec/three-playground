@@ -1,13 +1,7 @@
 import { Grid, type GridMaterialType, Text } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import {
-  Line,
-  Mesh,
-  Plane,
-  SphereGeometry,
-  Vector3
-} from "three";
+import { Line, Mesh, Plane, SphereGeometry, Vector3 } from "three";
 import { getThemeColor } from "../../utils/theme";
 import GridScene from "../components/GridScene";
 
@@ -39,6 +33,7 @@ function GridContent() {
     infiniteGrid: true,
     cellSize: 0.5,
     cellColor: primary,
+    sectionColor: primary,
     sectionSize,
   };
 
@@ -69,7 +64,7 @@ function GridContent() {
 
   return (
     <>
-      <Grid {...gridConfig} />
+      <Grid {...gridConfig}/>
       <Text
         color="black"
         anchorX="left"

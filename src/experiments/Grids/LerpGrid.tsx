@@ -31,7 +31,8 @@ function GridContent() {
     infiniteGrid: true,
     cellSize: 0.5,
     cellColor: primary,
-    sectionSize
+    sectionColor: primary,
+    sectionSize,
   };
 
   useFrame((_, delta) => {
@@ -46,23 +47,21 @@ function GridContent() {
 
     if (!intersection) return;
 
-    const {x, z} = intersection;
+    const { x, z } = intersection;
 
-    const targetX = Math.round(x / sectionSize) * sectionSize
-    const targetZ = Math.round(z / sectionSize) * sectionSize
+    const targetX = Math.round(x / sectionSize) * sectionSize;
+    const targetZ = Math.round(z / sectionSize) * sectionSize;
 
-    
-    const lerpFactor = 1 - Math.pow(0.0001, delta); 
-    
-    box.current.position.x += (targetX - box.current.position.x) * lerpFactor
-    box.current.position.z += (targetZ - box.current.position.z) * lerpFactor
+    const lerpFactor = 1 - Math.pow(0.0001, delta);
+
+    box.current.position.x += (targetX - box.current.position.x) * lerpFactor;
+    box.current.position.z += (targetZ - box.current.position.z) * lerpFactor;
   });
-
 
   return (
     <>
       <Grid {...gridConfig} />
-      <mesh position={[0, boxSize/2, 0]} ref={box}>
+      <mesh position={[0, boxSize / 2, 0]} ref={box}>
         <meshBasicMaterial color={accent} />
         <boxGeometry args={[boxSize, boxSize, boxSize]} />
       </mesh>

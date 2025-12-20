@@ -92,7 +92,7 @@ The most common solution to this problem is to add a factor $\delta$ (or $dt$), 
 seconds passed between the previous and current frame.
 
 $$
-\text{lerp}(a, b, \alpha) = a + (b - a) \cdot \alpha \cdot \delta
+\text{lerp}(a, b, k) = a + (b - a) \cdot k \cdot \delta
 $$
 
 And this is also where I would stop if it wasn't for [gingerBill video at BSC2025](https://www.youtube.com/watch?v=YNtoDGS4uak).
@@ -104,17 +104,22 @@ applied repeatedly: the step size depends on the current distance to the target,
 frame. A more frame independent solution is instead:
 
 $$
-\text{lerp}(a, b, \alpha) = a + (b - a) \cdot (1 - e^{-\alpha \delta})
+\text{lerp}(a, b, k) = a + (b - a) \cdot (1 - e^{-k \delta})
 $$
 
-To explain where the term $1 - e^{-\alpha \delta}$ comes from, we need to look more closely
-at our attempt at a frame independent lerp $a + (b - a) \cdot \alpha \cdot \delta$. What we are doing
+To explain where the term $1 - e^{-k \delta}$ comes from, we need to look more closely
+at our attempt at a frame independent lerp $a + (b - a) \cdot k \cdot \delta$. What we are doing
 here is saying that the source point $a$ should move towards the target point $b$ by a certain
 amount $\Delta{a}$. This amount is the distance from the current value $a(t)$ to $b$, scaled by a factor
-$\alpha$ (how fast we want to converge) and scaled again by the time that passed $\Delta{t}$:
+$k$ and scaled again by the time that passed $\Delta{t}$:
+
+Note that $k$ is no longer a fraction like $\alpha$ was. The value of the lerp factor is no more bound
+in the $[0,1]$ interval and doesn't represent anymore percentage displacement towards target. 
+It's now a *decay rate* with units of 1/second, and can be any positive number. 
+A higher $k$ means faster convergence:  
 
 $$
-\Delta{a}  = (b - a(t)) \cdot \alpha \cdot \Delta{t}
+\Delta{a}  = (b - a(t)) \cdot k \cdot \Delta{t}
 $$
 
 We can rearrange this to express the rate of change. By dividing both sides by $\Delta{t}$ and taking the
@@ -122,8 +127,8 @@ limit as the time interval becomes infinitesimally small, we get a differential 
 
 $$
 \begin{aligned}
-& \frac{\Delta{a}}{\Delta{t}}  = (b - a(t)) \cdot \alpha  \\
-& \frac{da}{dt}  = (b - a(t)) \cdot \alpha  \\
+& \frac{\Delta{a}}{\Delta{t}}  = (b - a(t)) \cdot k  \\
+& \frac{da}{dt}  = (b - a(t)) \cdot k  \\
 \end{aligned}
 $$
 
@@ -134,7 +139,7 @@ you'll get:
 
 
 $$
-a(t) = b + c_1 \cdot e^{-\alpha t}
+a(t) = b + c_1 \cdot e^{-k t}
 $$
 
 Where $c_1$ is a constant determined by the initial conditions. If we know that $a(0) = a_0$ (our starting
@@ -148,14 +153,14 @@ a lerp:
 
 $$
 \begin{aligned}
-a(t) & = b + (a(0) - b) \cdot e^{-\alpha t} \\
-a(t) & = a(0) \cdot e^{-\alpha t} + b \cdot (1 - e^{- \alpha t}) \\
-a(t) & = a(0) + (b - a(0)) \cdot (1 - e^{- \alpha t})
+a(t) & = b + (a(0) - b) \cdot e^{-k t} \\
+a(t) & = a(0) \cdot e^{-k t} + b \cdot (1 - e^{- k t}) \\
+a(t) & = a(0) + (b - a(0)) \cdot (1 - e^{- k t})
 \end{aligned}
 $$
 
-The last line is exactly the lerp formula $\text{lerp}(a(0), b, 1 - e^{-\alpha t})$. So we've circled back to
-linear interpolation, but now the interpolation parameter is $(1 - e^{-\alpha t})$ instead of a constant $\alpha$.
+The last line is exactly the lerp formula $\text{lerp}(a(0), b, 1 - e^{-k t})$. So we've circled back to
+linear interpolation, but now the interpolation parameter is $(1 - e^{-k t})$ instead of a constant $k$.
 
 This gives us the position at any time $t$ given the initial position $a(0)$. But in a threejs frame (or in a game loop), we don't
 have access to the original starting position from time zero; we only know the current position and want to
@@ -163,17 +168,41 @@ compute where we'll be after one frame. To get an incremental update formula, we
 starting fresh: the "initial" position is wherever we are now, and $t$ becomes the time step $\Delta{t}$.
 
 $$
-a_{\text{next}} = a_{\text{current}} + (b - a_{\text{current}}) \cdot (1 - e^{-\alpha \Delta{t}})
+a_{\text{next}} = a_{\text{current}} + (b - a_{\text{current}}) \cdot (1 - e^{-k \Delta{t}})
 $$
 
 Or equivalently, the change in position each frame is:
 
 $$
-\Delta{a} = (b - a) \cdot (1 - e^{-\alpha \Delta{t}})
+\Delta{a} = (b - a) \cdot (1 - e^{-k \Delta{t}})
 $$
 
-This is our frame-rate independent lerp. The exponential term $(1 - e^{-\alpha \Delta{t}})$
+This is our frame-rate independent lerp. The exponential term $(1 - e^{-k \Delta{t}})$
 automatically adjusts for variable frame times: when $\Delta{t}$ is large (low FPS), the exponential term grows
 and we take a bigger step; when $\Delta{t}$ is small (high FPS), we take many smaller steps. But unlike the
-naive $\alpha \cdot \delta$ approach, this correctly accounts for the compounding nature of the interpolation
+naive $k \cdot \delta$ approach, this correctly accounts for the compounding nature of the interpolation
 and produces the same result regardless of frame rate.
+
+In the code above, you might have noticed the lerp factor is written as:
+
+```ts
+const lerpFactor = 1 - Math.pow(0.0001, delta);
+```
+
+This looks different from the $1 - e^{-k \Delta t}$ we derived, but they're actually equivalent. Using the
+identity $x = e^{\ln(x)}$, we can rewrite the base form:
+
+$$
+0.0001^{\delta} = e^{\ln(0.0001) \cdot \delta} = e^{-9.21 \cdot \delta}
+$$
+
+So `Math.pow(0.0001, delta)` is the same as $e^{-9.21 \cdot \delta}$, meaning our code uses $k \approx 9.21$.
+
+The two forms offer different ways to think about the speed parameter:
+
+- **Decay rate form** ($1 - e^{-k \Delta t}$): You specify how fast you converge. Higher $k$ means faster movement.
+- **Remaining fraction form** ($1 - \text{base}^{\Delta t}$): You specify what fraction of the distance remains after one second.
+
+The second form is often more intuitive for tweaking. With a base of `0.0001`, after one second only 0.01% of the
+original distance remains — you're essentially there. If you wanted slower, smoother movement, you'd use a larger
+base like `0.1`, meaning 10% of the distance remains after one second.
